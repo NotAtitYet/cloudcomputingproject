@@ -2,8 +2,8 @@ import {BrowserRouter, Routes, Route} from "react-router-dom";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
 import EditProduct from "./components/EditProduct";
-import Login from "./components/login";
-import Register from "./components/register";
+import Login from "./components/Login/login";
+import Register from "./components/Register/register";
 
 function App() {
   return (
