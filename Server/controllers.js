@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "./models/userModel.js";
 import FileMetaData from "./models/fileModel.js"
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -155,10 +156,11 @@ export const uploadFilesController = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-}
+};
 export const getFiles = async (req, res) => {
     try {
         console.log("authorization passed");
+        console.log(req.user._id);
         const files = await FileMetaData.find({
             ownerID: req.user._id
         });
@@ -170,5 +172,56 @@ export const getFiles = async (req, res) => {
             message: "Error while getting user Files",
             e,
         });
+    }
+};
+export const deleteFileController = async (req, res) => {
+    try {
+        // Step 1: Validate request
+        // console.log(req.params);
+        const { fileId } = req.params;
+        if (!fileId) {
+            return res.status(400).json({ error: "File ID is required" });
+        }
+        console.log(fileId);
+        // Step 2: Fetch file metadata from MongoDB
+        const file = await FileMetaData.findById(fileId);
+        // const file = await FileMetaData.findById({
+        //     _id: fileId
+        // });
+        if (!file) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        console.log("fileFuond");
+        // Step 3: Validate file ownership
+        if (file.ownerID.toString() !== req.user._id) {
+            return res.status(403).json({ error: "Unauthorized to delete this file" });
+        }
+
+        const accountName = process.env.ACCOUNT_NAME;
+        const sasToken = process.env.SAS_TOKEN;
+        const containerName = process.env.CONTAINER_NAME;
+        const blobServiceClient = new BlobServiceClient(
+            `https://${accountName}.blob.core.windows.net/?${sasToken}`
+        );
+        // Step 4: Extract blob name from the URL
+        const blobUrl = file.fileURL;
+        const blobName = blobUrl.split("/").pop().split("?")[0];
+
+        // Step 5: Delete file from Azure Blob Storage
+        const containerClient = blobServiceClient.getContainerClient(containerName);
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        await blockBlobClient.delete();
+        console.log(`Deleted file from Azure: ${blobName}`);
+
+        // Step 6: Delete file metadata from MongoDB
+        await FileMetaData.findByIdAndDelete(fileId);
+        console.log(`Deleted file metadata from MongoDB: ${fileId}`);
+
+        // Step 7: Respond to client
+        res.status(200).json({ message: "File deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "An error occurred while deleting the file" });
     }
 };
