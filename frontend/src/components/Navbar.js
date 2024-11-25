@@ -8,7 +8,7 @@ const Navbar = () => {
   // const user=null
 
   console.log(user)
-  console.log(JSON.parse(localStorage.getItem("username")));
+  // console.log(JSON.parse(localStorage.getItem("username")));
   return (
     <nav className="navbar">
       <div className="navbar-container">
