@@ -26,7 +26,7 @@ const AddProduct = () => {
     //       "Content-type": "multipart/form-data",
     //     },
     //   });
-    //   navigate("/");
+    //   navigate("/home");
     // } catch (error) {
     //   console.log(error);
     // }

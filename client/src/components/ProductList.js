@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import AddProduct from "./AddProduct";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +11,8 @@ const ProductList = () => {
   }, []);
 
   const getProducts = async () => {
-    const response = await axios.get("http://localhost:5000/products");
+    const response = await axios.get("http://localhost:8080/api/v1/auth/getFiles");
+    console.log(response.data);
     setProducts(response.data);
   };
 
@@ -25,9 +27,7 @@ const ProductList = () => {
 
   return (
     <div className="container mt-5">
-      <Link to="/add" className="button is-success">
-        Add New
-      </Link>
+      <AddProduct/>
       <div className="columns is-multiline mt-2">
         {products.map((product) => (
           <div className="column is-one-quarter" key={product.id}>
